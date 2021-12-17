@@ -1,9 +1,10 @@
 import 'dart:convert' as convert;
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:http/http.dart' as http;
 
-final postsStateFuture = FutureProvider<List<Post>>((ref) async {
+final postsProvider = FutureProvider<List<Post>>((ref) async {
   return fetchPosts();
 });
 
@@ -13,7 +14,11 @@ class Post {
   final String title;
   final String body;
 
-  Post(this.userId, this.body, this.id, this.title);
+  Post(
+      {required this.userId,
+      required this.body,
+      required this.id,
+      required this.title});
 
   Post.fromJson(Map<String, dynamic> json)
       : userId = json['userId'],
@@ -29,14 +34,19 @@ class Post {
       };
 }
 
+List<Post> parsePosts(String responseBody) {
+  final parsed = convert.jsonDecode(responseBody).cast<Map<String, dynamic>>();
+
+  return parsed.map<Post>((json) => Post.fromJson(json)).toList();
+}
+
 Future<List<Post>> fetchPosts() async {
-  var url = Uri.https('jsonplaceholder.typicode.com', '/posts');
+  var url = Uri.parse('https://jsonplaceholder.typicode.com/posts');
 
   var response = await http.get(url);
   if (response.statusCode == 200) {
-    var jsonResponse = convert.jsonDecode(response.body) as List<dynamic>;
-
-    return jsonResponse.map((json) => Post.fromJson(json)).toList();
+    // Use the compute function to run parsePhotos in a separate isolate.
+    return compute(parsePosts, response.body);
   } else {
     throw Exception('Failed to load post');
   }

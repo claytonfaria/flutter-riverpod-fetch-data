@@ -12,7 +12,7 @@ class MyApp extends ConsumerWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    var value = ref.watch(postsStateFuture);
+    var value = ref.watch(postsProvider);
 
     return MaterialApp(
       title: 'Flutter Demo',
